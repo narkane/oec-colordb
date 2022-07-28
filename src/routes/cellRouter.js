@@ -5,6 +5,7 @@ const CellRezOf2 = require("../models/cellModel");
 
 router.post("/colorCell", async (req, res) => {
   try {
+    console.log("Color Request from: " + req.socket.remoteAddress);
     console.log(req.body);
     // !! check for uniqueness and throw error
     const location = req.body.location;
