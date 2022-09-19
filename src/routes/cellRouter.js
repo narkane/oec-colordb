@@ -57,6 +57,7 @@ router.post("/fetchRegion", async (req, res) => {
               { "location.0": { $lte: 840 } },
               { "location.1": { $gte: req.body.firstCell.y } },
               { "location.1": { $lte: req.body.lastCell.y } },
+              { updatedAt: { $gte: req.body.lastFetchRegionTime } },
             ],
           },
           {
@@ -65,6 +66,7 @@ router.post("/fetchRegion", async (req, res) => {
               { "location.0": { $lte: req.body.lastCell.x } },
               { "location.1": { $gte: req.body.firstCell.y } },
               { "location.1": { $lte: req.body.lastCell.y } },
+              { updatedAt: { $gte: req.body.lastFetchRegionTime } },
             ],
           },
         ],
@@ -88,9 +90,11 @@ router.post("/fetchRegion", async (req, res) => {
           { "location.0": { $lte: req.body.lastCell.x } },
           { "location.1": { $gte: req.body.firstCell.y } },
           { "location.1": { $lte: req.body.lastCell.y } },
+          { updatedAt: { $gte: req.body.lastFetchRegionTime } },
         ],
       });
     }
+    // console.log(JSON.stringify(res));
 
     res.json(cellResponse);
   } catch (error) {
