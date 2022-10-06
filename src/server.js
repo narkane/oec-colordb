@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 const DBURL = process.env.MONGO_URI;
 
 // EXPRESS!
-const app = express()
+const app = express();
 app.use(express.json());
 app.use(cors());
 // app.use(express.urlencoded({ extended: true }));
@@ -32,9 +32,9 @@ mongoose.connect(
 // ROUTES!
 
 // user routes
-// app.use("/users", require('./routes/userRouter'));
+app.use("/users", require("./routes/userRouter"));
 // app.use("/msUsers", require('./routes/msUserRouter'));
-app.use("/cell", require('./routes/cellRouter'));
+app.use("/cell", require("./routes/cellRouter"));
 
 // !!! OLD CODE
 /*app.get('/', (req, res) => {
