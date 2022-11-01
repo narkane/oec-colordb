@@ -93,11 +93,9 @@ router.put("/edit", auth, async (req, res) => {
 
     const editedUser = await User.findByIdAndUpdate(req.user, userEdit);
     if (!editedUser) {
-      return res
-        .status(400)
-        .json({
-          msg: "An account with this username already exists. (Q,Q ) Sad day.",
-        });
+      return res.status(400).json({
+        msg: "An account with this username already exists. (Q,Q ) Sad day.",
+      });
     }
     res.json(editedUser);
   } catch (error) {
@@ -168,7 +166,13 @@ router.post("/tokenIsValid", async (req, res) => {
     const user = await User.findById(verified.id);
     if (!user) return res.json(false);
 
-    return res.json(true);
+    return res.json({
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      id: user._id,
+    });
   } catch (error) {
     res.status(500).json({ err: error.message });
   }

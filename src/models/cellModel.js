@@ -3,9 +3,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 let cellData = new Schema({
-  // owner: {
-  //     type: String
-  // },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user",
+  },
   color: {
     type: String,
   },

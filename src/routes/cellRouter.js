@@ -1,15 +1,18 @@
 const router = require("express").Router();
 const CellRezOf2 = require("../models/cellModel");
-// const User = require("../models/userModel");
-// const auth = require("../middleware/auth");
+const User = require("../models/userModel");
+const auth = require("../middleware/auth");
 
-router.post("/colorCell", async (req, res) => {
+const ObjectId = require("mongoose").Types.ObjectId;
+
+router.post("/colorCell", auth, async (req, res) => {
   try {
     console.log(req.body);
     // !! check for uniqueness and throw error
     const location = req.body.location;
     const color = req.body.color;
 
+    console.log(req.user);
     console.log(location, color);
 
     if (!location || !color) {
@@ -32,12 +35,47 @@ router.post("/colorCell", async (req, res) => {
     const newCell = new CellRezOf2({
       location: req.body.location,
       cellData: {
-        // owner: req.user.username,
+        owner: req.user,
         color: req.body.color,
       },
     });
     const savedCell = await newCell.save();
     res.json(savedCell);
+  } catch (error) {
+    res.status(500).json({ err: error.message });
+  }
+});
+
+router.post("/inspectCell", auth, async (req, res) => {
+  try {
+    const location = req.body;
+
+    console.log(location);
+
+    if (!location) {
+      return res.status(400).json({ msg: "No location specified." });
+    }
+
+    cellResponse = await CellRezOf2.findOne({
+      $and: [
+        { "location.0": { $eq: location[0] } },
+        { "location.1": { $eq: location[1] } },
+      ],
+    });
+    try {
+      const ownerLookup = await User.findOne({
+        _id: new ObjectId(cellResponse.cellData.owner),
+      });
+      res.json({
+        location: cellResponse.location,
+        cellData: {
+          owner: ownerLookup.username,
+          color: cellResponse.cellData.color,
+        },
+      });
+    } catch {
+      res.json(cellResponse);
+    }
   } catch (error) {
     res.status(500).json({ err: error.message });
   }
