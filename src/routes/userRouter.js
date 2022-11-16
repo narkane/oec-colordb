@@ -6,21 +6,104 @@ const Cell = require("../models/cellModel");
 const auth = require("../middleware/auth");
 
 router.post("/register", async (req, res) => {
-  try {
-    // Creating new user!! :O
-    const newUser = new User({
-      // username: username,
-      // password: passwordHash,
-      // firstName: firstName,
-      // lastName: lastName,
-      // email: email,
-    });
-    const savedUser = await newUser.save();
-    console.log("newUser._id: " + newUser._id);
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
-    res.json({ token, savedUser });
-  } catch (error) {
-    res.status(500).json({ err: error.message });
+  if (req.body.form === "register") {
+    try {
+      const { username, password, passwordCheck, firstName, lastName, email } =
+        req.body;
+
+      userRegister = {};
+
+      // validate
+      // 400 = bad request
+      // 500 = internal server error
+
+      console.log("POST /register: " + req.body);
+
+      if (!username || !password || !passwordCheck || !email) {
+        return res
+          .status(400)
+          .json({ msg: "Not all required fields have been entered." });
+      }
+
+      if (firstName) userRegister.firstName = firstName;
+      if (lastName) userRegister.lastName = lastName;
+
+      // Checking to ensure password length is at least 8 characters
+      if (password && password.length < 8) {
+        return res.status(400).json({
+          msg: "Your password needs to be at least 8 characters long.",
+        });
+      }
+
+      // Checking password entered vs the password checker
+      if (password && password !== passwordCheck) {
+        return res.status(400).json({
+          msg: "The passwords entered do not match. Please try again.",
+        });
+      }
+
+      // Checking DB for any existing user using the desired username
+      if (username) {
+        const existingUsername = await User.findOne({ username: username });
+        if (existingUsername) {
+          return res
+            .status(400)
+            .json({ msg: "An account with this username already exists." });
+        }
+        userRegister.username = username;
+      }
+
+      // Checking DB for any existing user using the desired email
+      if (email) {
+        const existingEmail = await User.findOne({ email: email });
+        if (existingEmail) {
+          return res
+            .status(400)
+            .json({ msg: "An account with this email already exists." });
+        }
+        userRegister.email = email;
+      }
+
+      // Using bcrypt to hash passwords - for sekuritty, duh :P
+      if (password && passwordCheck) {
+        const salt = await bcrypt.genSalt();
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        userRegister.password = passwordHash;
+      }
+
+      console.log(userRegister);
+
+      const registeredUser = new User(userRegister);
+      const savedUser = await registeredUser.save();
+      console.log("savedUser: ", savedUser);
+      const token = jwt.sign(
+        { id: registeredUser._id },
+        process.env.JWT_SECRET
+      );
+      res.json({ token, user: savedUser });
+    } catch (error) {
+      res.status(500).json({ err: error.message });
+    }
+  } else {
+    try {
+      console.log("test registration");
+      console.log("register body: ", req.body);
+      // Creating new user!! :O
+      const newUser = new User({
+        // username: username,
+        // password: passwordHash,
+        // firstName: firstName,
+        // lastName: lastName,
+        // email: email,
+      });
+      const savedUser = await newUser.save();
+      console.log("newUser._id: " + newUser._id);
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      res.json({ token, user: savedUser });
+    } catch (error) {
+      res.status(500).json({ err: error.message });
+    }
   }
 });
 
