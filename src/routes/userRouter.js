@@ -128,8 +128,10 @@ router.put("/edit", auth, async (req, res) => {
     //   password = null;
     // }
 
-    if (firstName) userEdit.firstName = firstName;
-    if (lastName) userEdit.lastName = lastName;
+    // if (firstName)
+    userEdit.firstName = firstName;
+    // if (lastName)
+    userEdit.lastName = lastName;
 
     // Checking to ensure password length is at least 8 characters
     // if (password && password.length < 8) {
@@ -149,18 +151,20 @@ router.put("/edit", auth, async (req, res) => {
     if (username) {
       // console.log("ll");
       const existingUsername = await User.findOne({ username: username });
-      if (existingUsername) {
+      if (existingUsername && existingUsername._id != req.body._id) {
+        console.log("not equal _id: ", existingUsername._id);
         return res
           .status(400)
           .json({ msg: "An account with this username already exists." });
       }
+      console.log("desired change Id: ", req.body._id);
       userEdit.username = username;
     }
 
     // Checking DB for any existing user using the desired email
     if (email) {
       const existingEmail = await User.findOne({ email: email });
-      if (existingEmail) {
+      if (existingEmail && existingEmail._id != req.body._id) {
         return res
           .status(400)
           .json({ msg: "An account with this email already exists." });
@@ -177,10 +181,10 @@ router.put("/edit", auth, async (req, res) => {
     // }
 
     console.log("new edit: ", userEdit);
-    console.log("req ID: ", req.body._id);
+    // console.log("req.body: ", ObjectId(req.body._id));
 
     User.findOneAndUpdate(
-      req.body.id,
+      { _id: req.body._id },
       userEdit,
       { new: true },
       (err, result) => {
@@ -255,6 +259,7 @@ router.post("/tokenIsValid", async (req, res) => {
     const verified = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
     if (!verified) return res.json(false);
 
+    // !! needs .id not ._id - weird.....
     const user = await User.findById(verified.id);
     if (!user) return res.json(false);
 
